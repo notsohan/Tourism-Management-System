@@ -1,5 +1,6 @@
 package com.notsohan.tms.event;
 
+import com.notsohan.tms.model.Manager;
 import com.notsohan.tms.model.Tourist;
 import lombok.Getter;
 import lombok.Setter;

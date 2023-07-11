@@ -2,6 +2,7 @@ package com.notsohan.tms.event.listener;
 
 import com.notsohan.tms.event.RegistrationCompleteEvent;
 import com.notsohan.tms.model.Tourist;
+import com.notsohan.tms.service.ManagerService;
 import com.notsohan.tms.service.TouristService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
