@@ -1,6 +1,7 @@
 package com.notsohan.tms.controller;
 
 import com.notsohan.tms.event.RegistrationCompleteEvent;
+import com.notsohan.tms.model.PasswordModel;
 import com.notsohan.tms.model.Tourist;
 import com.notsohan.tms.model.TouristModel;
 import com.notsohan.tms.model.VerificationToken;
@@ -11,6 +12,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -66,6 +69,55 @@ public class TouristController {
         String url =
                 applicationUrl + "verificationRegistration?token=" + verificationToken;
         log.info("Click the link to verify your account " + url);
+    }
+
+    @PostMapping("/resetPassword")
+    public String resetPassword(@RequestBody PasswordModel passwordModel,
+                                HttpServletRequest request){
+        Tourist tourist = touristService.findUserByEmail(passwordModel.getEmail());
+
+        String url = "";
+        if(tourist!=null){
+            String token = UUID.randomUUID().toString();
+            touristService.createPasswordTokenForUser(tourist, token);
+            url = passwordResetTokenMail(tourist, applicationUrl(request), token);
+        }
+        return url;
+    }
+
+    private String passwordResetTokenMail(Tourist tourist, String applicationUrl, String token) {
+        String url =
+                applicationUrl
+                        + "/savePassword?token="
+                        + token;
+        log.info("Click the link to Reset your password: "+ url);
+        return url;
+    }
+
+    @PostMapping("/savePassword")
+    public String savePassword(@RequestParam("token") String token,
+                               @RequestBody PasswordModel passwordModel){
+        String result = touristService.validatePasswordResetToken(token);
+        if(!result.equalsIgnoreCase("valid")){
+            return "Invalid Token";
+        }
+        Optional<Tourist> user = touristService.getUserByPasswordResetToken(token);
+        if(user.isPresent()){
+            touristService.changePassword(user.get(), passwordModel.getNewPassword());
+            return "Password Reset Successfully!";
+        }else{
+            return "Invalid Token";
+        }
+    }
+
+    @PostMapping("/changePassword")
+    public String changePassword(@RequestBody PasswordModel passwordModel){
+        Tourist tourist = touristService.findUserByEmail(passwordModel.getEmail());
+        if(!touristService.checkIfValidOldPassword(tourist, passwordModel.getOldPassword())) {
+            return "Invalid Old Password";
+        }
+        touristService.changePassword(tourist, passwordModel.getNewPassword());
+        return "Password change successfully!";
     }
 
     private String applicationUrl(HttpServletRequest request) {

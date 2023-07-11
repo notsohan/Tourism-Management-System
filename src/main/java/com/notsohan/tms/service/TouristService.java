@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -14,14 +15,17 @@ public class TouristService {
     private final TouristRepository touristRepository;
     private final PasswordEncoder passwordEncoder;
     public final VerificationTokenRepository verificationTokenRepository;
+    public final PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
     public TouristService(TouristRepository touristRepository,
                           PasswordEncoder passwordEncoder,
-                          VerificationTokenRepository verificationTokenRepository){
+                          VerificationTokenRepository verificationTokenRepository,
+                          PasswordResetTokenRepository passwordResetTokenRepository){
         this.touristRepository = touristRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationTokenRepository = verificationTokenRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
     public Tourist registerUser(TouristModel touristModel) {
         Tourist tourist = new Tourist();
@@ -68,5 +72,44 @@ public class TouristService {
         verificationToken.setToken(UUID.randomUUID().toString());
         verificationTokenRepository.save(verificationToken);
         return verificationToken;
+    }
+
+    public Tourist findUserByEmail(String email) {
+        return touristRepository.findByEmail(email);
+    }
+
+    public void createPasswordTokenForUser(Tourist tourist, String token) {
+        PasswordResetToken passwordResetToken = new PasswordResetToken(tourist, token);
+        passwordResetTokenRepository.save(passwordResetToken);
+    }
+
+    public String validatePasswordResetToken(String token) {
+        PasswordResetToken passwordResetToken =
+                passwordResetTokenRepository.findByToken(token);
+        if(passwordResetToken==null){
+            return "invalid";
+        }
+        Tourist tourist = passwordResetToken.getTourist();
+        Calendar cal = Calendar.getInstance();
+
+        if((passwordResetToken.getExpirationTime().getTime())
+                - cal.getTime().getTime() <=0){
+            passwordResetTokenRepository.delete(passwordResetToken);
+            return "expired";
+        }
+        return "valid";
+    }
+
+    public Optional<Tourist> getUserByPasswordResetToken(String token) {
+        return Optional.ofNullable(passwordResetTokenRepository.findByToken(token).getTourist());
+    }
+
+    public void changePassword(Tourist tourist, String newPassword) {
+        tourist.setPassword(passwordEncoder.encode(newPassword));
+        touristRepository.save(tourist);
+    }
+
+    public boolean checkIfValidOldPassword(Tourist tourist, String oldPassword) {
+        return passwordEncoder.matches(oldPassword, tourist.getPassword());
     }
 }
