@@ -27,7 +27,7 @@ public class RegistrationCompleteEventListener
         Tourist tourist = event.getTourist();
         String token = UUID.randomUUID().toString();
         touristService.saveVerificationTokenForUser(tourist, token);
-        String url = event.getApplicationUrl() + "/user/verifyRegistration?token=" + token;
+        String url = event.getApplicationUrl() + "/verifyRegistration?token=" + token;
         log.info("Click the link to verify your account! " + url);
     }
 }

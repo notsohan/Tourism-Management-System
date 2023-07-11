@@ -70,8 +70,7 @@ public class TouristController {
                                              VerificationToken verificationToken) {
         String url =
                 applicationUrl + "/verifyRegistration?token=" + verificationToken.getToken();
-        //Send verification Email
-        log.info("Click the link to verify your account!" + url);
+        log.info("Click the link to verify your account! " + url);
     }
 
     @PostMapping("/resetPassword")
@@ -128,6 +127,7 @@ public class TouristController {
                 + request.getServerName() +
                 ":" +
                 request.getServerPort() +
+                "/user" +
                 request.getContextPath();
     }
 }
