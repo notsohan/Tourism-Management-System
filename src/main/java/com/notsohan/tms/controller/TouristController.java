@@ -48,27 +48,30 @@ public class TouristController {
         if(result.equalsIgnoreCase("valid")){
             return "User verified successfully";
         }else{
-            return "Bad Token";
+            return "Bad user!";
         }
     }
 
     @GetMapping("/resendVerificationToken")
     public String resendVerificationToken(@RequestParam("token") String oldToken,
-                                          HttpServletRequest request){
+                                          HttpServletRequest request
+    ){
         VerificationToken verificationToken
                 = touristService.generateNewVerificationToken(oldToken);
 
         Tourist tourist = verificationToken.getTourist();
-        resendVerificationTokenMail(applicationUrl(request), verificationToken);
+        resendVerificationTokenMail(tourist, applicationUrl(request), verificationToken);
 
         return "Verification Link sent!";
     }
 
-    private void resendVerificationTokenMail(String applicationUrl,
+    private void resendVerificationTokenMail(Tourist tourist,
+                                             String applicationUrl,
                                              VerificationToken verificationToken) {
         String url =
-                applicationUrl + "verificationRegistration?token=" + verificationToken;
-        log.info("Click the link to verify your account " + url);
+                applicationUrl + "/verifyRegistration?token=" + verificationToken.getToken();
+        //Send verification Email
+        log.info("Click the link to verify your account!" + url);
     }
 
     @PostMapping("/resetPassword")
@@ -125,7 +128,6 @@ public class TouristController {
                 + request.getServerName() +
                 ":" +
                 request.getServerPort() +
-                "/user"+
                 request.getContextPath();
     }
 }

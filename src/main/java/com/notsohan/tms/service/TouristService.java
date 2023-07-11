@@ -41,6 +41,11 @@ public class TouristService {
         return tourist;
     }
 
+    public void saveVerificationTokenForUser(String token, Tourist tourist){
+        VerificationToken verificationToken = new VerificationToken(tourist, token);
+        verificationTokenRepository.save(verificationToken);
+    }
+
     public void saveVerificationTokenForUser(Tourist tourist, String token) {
         VerificationToken verificationToken = new VerificationToken(tourist, token);
         verificationTokenRepository.save(verificationToken);
@@ -50,18 +55,18 @@ public class TouristService {
         VerificationToken verificationToken
                 = verificationTokenRepository.findByToken(token);
 
-        if(verificationToken == null){
-             return "invalid";
+        if(verificationToken==null){
+            return "invalid token";
         }
 
         Tourist tourist = verificationToken.getTourist();
-        Calendar calendar = Calendar.getInstance();
-
+        Calendar cal = Calendar.getInstance();
         if((verificationToken.getExpirationTime().getTime()
-                - calendar.getTime().getTime()) <= 0){
+                - cal.getTime().getTime())<=0){
             verificationTokenRepository.delete(verificationToken);
-            return "expired";
+            return"expired";
         }
+
         tourist.setEnable(true);
         touristRepository.save(tourist);
         return "valid";
