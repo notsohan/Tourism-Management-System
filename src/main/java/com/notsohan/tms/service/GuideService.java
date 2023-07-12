@@ -29,4 +29,13 @@ public class GuideService {
 
         guideRepository.save(guide);
     }
+
+    public Guide findByEmail(String email) {
+        return guideRepository.findByEmail(email);
+    }
+
+    public void changePassword(Guide guide, String newPassword) {
+        guide.setPassword(passwordEncoder.encode(newPassword));
+        guideRepository.save(guide);
+    }
 }
